@@ -160,7 +160,7 @@
       dataInizio: "2026-01-01",
       dataFine: "2026-12-31",
       tassoAnnuo: 0.02,
-      fonteLabel: "Art. 1284 c.c. / tasso 2025 confermato salvo modifica",
+      fonteLabel: "Art. 1284 c.c. / tasso per l'anno corrente invariato rispetto all'anno precedente",
       fonteUrl: "https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1284"
     }
   ];
