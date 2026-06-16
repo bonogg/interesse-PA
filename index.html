@@ -27,38 +27,38 @@
       <section class="workspace" aria-label="Calcolatore">
         <form id="calculatorForm" class="panel input-panel">
           <div class="panel-heading">
-            <h2>Dati del pagamento</h2>
-            <p>Gli interessi decorrono dal giorno successivo alla scadenza.</p>
+            <h2>Dati della fattura</h2>
+            <p>Inserisci le date nel formato gg/mm/aaaa.</p>
           </div>
 
           <div class="field-grid">
             <label>
-              <span>Capitale dovuto</span>
-              <input id="capitale" name="capitale" type="text" inputmode="decimal" placeholder="10.000,00" autocomplete="off" required>
+              <span>Importo della fattura (€)</span>
+              <input id="capitale" name="capitale" type="text" inputmode="decimal" placeholder="200,00" autocomplete="off">
             </label>
             <label>
-              <span>Data di scadenza</span>
-              <input id="dataScadenza" name="dataScadenza" type="date" required>
+              <span>Scadenza della fattura</span>
+              <input id="dataScadenza" name="dataScadenza" type="text" inputmode="numeric" placeholder="gg/mm/aaaa" autocomplete="off">
             </label>
             <label>
-              <span>Data finale del calcolo</span>
-              <input id="dataFinale" name="dataFinale" type="date" required>
+              <span>Data del pagamento o della stima</span>
+              <input id="dataFinale" name="dataFinale" type="text" inputmode="numeric" placeholder="gg/mm/aaaa" autocomplete="off">
             </label>
             <label>
-              <span>Data domanda giudiziale</span>
-              <input id="dataDomandaGiudiziale" name="dataDomandaGiudiziale" type="date">
+              <span>Domanda giudiziale, se presente</span>
+              <input id="dataDomandaGiudiziale" name="dataDomandaGiudiziale" type="text" inputmode="numeric" placeholder="gg/mm/aaaa" autocomplete="off">
             </label>
           </div>
 
           <div class="section-row">
-            <h3>Pagamenti parziali</h3>
+            <h3>Pagamenti prima della data finale</h3>
             <button id="addPayment" class="secondary-button" type="button">Aggiungi pagamento</button>
           </div>
           <div id="paymentsContainer" class="payments" aria-live="polite"></div>
 
           <div class="field-grid rate-grid">
             <label>
-              <span>Tasso anatocismo</span>
+              <span>Tasso per anatocismo</span>
               <select id="tipoTassoAnatocismo" name="tipoTassoAnatocismo">
                 <option value="commerciale" selected>Commerciale / moratorio</option>
                 <option value="legale">Legale</option>
@@ -66,14 +66,14 @@
               </select>
             </label>
             <label>
-              <span>Tasso personalizzato (%)</span>
+              <span>Tasso annuo personalizzato (%)</span>
               <input id="tassoPersonalizzato" name="tassoPersonalizzato" type="text" inputmode="decimal" placeholder="10,15" autocomplete="off">
             </label>
           </div>
 
           <div class="form-actions">
             <button class="primary-button" type="submit">Calcola</button>
-            <button id="resetButton" class="ghost-button" type="button">Reset</button>
+            <button id="resetButton" class="ghost-button" type="button">Svuota</button>
           </div>
         </form>
 
@@ -85,19 +85,19 @@
 
           <dl class="result-list">
             <div>
-              <dt>Capitale residuo</dt>
+              <dt>Importo fattura ancora dovuto</dt>
               <dd id="capitaleResiduo">&euro; 0,00</dd>
             </div>
             <div>
-              <dt>Interessi commerciali</dt>
+              <dt>Interessi moratori maturati</dt>
               <dd id="interessiCommerciali">&euro; 0,00</dd>
             </div>
             <div>
-              <dt>Anatocismo</dt>
+              <dt>Interessi anatocistici</dt>
               <dd id="anatocismo">&euro; 0,00</dd>
             </div>
             <div class="total-row">
-              <dt>Totale dovuto</dt>
+              <dt>Totale stimato da pagare</dt>
               <dd id="totaleDovuto">&euro; 0,00</dd>
             </div>
           </dl>
@@ -140,7 +140,7 @@
               <tr>
                 <th>Periodo</th>
                 <th>Giorni</th>
-                <th>Base di calcolo</th>
+                <th>Importo su cui si calcola</th>
                 <th>Tasso annuo</th>
                 <th>Interessi</th>
                 <th>Pagamento</th>
@@ -164,6 +164,14 @@
         <ul id="assumptionList" class="assumption-list"></ul>
       </section>
     </main>
+
+    <div id="errorPopup" class="error-popup" hidden role="alertdialog" aria-modal="true" aria-labelledby="errorPopupTitle">
+      <div class="error-popup__panel">
+        <h2 id="errorPopupTitle">Controlla i dati inseriti</h2>
+        <p id="errorPopupMessage"></p>
+        <button id="errorPopupClose" class="primary-button" type="button">Ho capito</button>
+      </div>
+    </div>
 
     <script src="rates.js"></script>
     <script src="app.js"></script>

@@ -49,9 +49,9 @@
     return parsed;
   }
 
-  function parseDateISO(value) {
+  function parseDateISO(value, fieldLabel = "Data") {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value))) {
-      throw new Error("Data non valida");
+      throw new Error(`${fieldLabel}: inserisci una data valida nel formato gg/mm/aaaa`);
     }
     const [year, month, day] = value.split("-").map(Number);
     const date = new Date(Date.UTC(year, month - 1, day));
@@ -60,7 +60,32 @@
       date.getUTCMonth() !== month - 1 ||
       date.getUTCDate() !== day
     ) {
-      throw new Error("Data non valida");
+      throw new Error(`${fieldLabel}: inserisci una data valida nel formato gg/mm/aaaa`);
+    }
+    return date;
+  }
+
+  function parseDateInput(value, fieldLabel = "Data") {
+    if (value instanceof Date) return value;
+    const raw = String(value ?? "").trim();
+    if (!raw) throw new Error(`${fieldLabel}: campo obbligatorio`);
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+      return parseDateISO(raw, fieldLabel);
+    }
+
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(raw)) {
+      throw new Error(`${fieldLabel}: usa il formato gg/mm/aaaa`);
+    }
+
+    const [day, month, year] = raw.split("/").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (
+      date.getUTCFullYear() !== year ||
+      date.getUTCMonth() !== month - 1 ||
+      date.getUTCDate() !== day
+    ) {
+      throw new Error(`${fieldLabel}: inserisci una data valida`);
     }
     return date;
   }
@@ -69,14 +94,40 @@
     return date.toISOString().slice(0, 10);
   }
 
+  function normalizeDateInput(value, fieldLabel = "Data") {
+    return formatDateISO(parseDateInput(value, fieldLabel));
+  }
+
+  function normalizeItalianFormDate(value, fieldLabel, options = { required: true }) {
+    const raw = String(value ?? "").trim();
+    if (!raw) {
+      if (options.required) throw new Error(`${fieldLabel}: campo obbligatorio`);
+      return "";
+    }
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(raw)) {
+      throw new Error(`${fieldLabel}: usa il formato gg/mm/aaaa`);
+    }
+    return normalizeDateInput(raw, fieldLabel);
+  }
+
+  function formatDateItalian(value) {
+    const date = value instanceof Date ? value : parseDateInput(value);
+    return new Intl.DateTimeFormat("it-IT", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: "UTC"
+    }).format(date);
+  }
+
   function addDays(value, days) {
-    const date = value instanceof Date ? value : parseDateISO(value);
+    const date = value instanceof Date ? value : parseDateInput(value);
     return new Date(date.getTime() + days * MS_PER_DAY);
   }
 
   function giorniTra(dataInizio, dataFine) {
-    const start = dataInizio instanceof Date ? dataInizio : parseDateISO(dataInizio);
-    const end = dataFine instanceof Date ? dataFine : parseDateISO(dataFine);
+    const start = dataInizio instanceof Date ? dataInizio : parseDateInput(dataInizio, "Data iniziale");
+    const end = dataFine instanceof Date ? dataFine : parseDateInput(dataFine, "Data finale");
     const days = Math.round((end.getTime() - start.getTime()) / MS_PER_DAY);
     if (days < 0) throw new Error("La data finale precede la data iniziale");
     return days;
@@ -93,13 +144,13 @@
   }
 
   function trovaTassoAllaData(date, tassi) {
-    const day = date instanceof Date ? date : parseDateISO(date);
+    const day = date instanceof Date ? date : parseDateInput(date);
     return normalizeRates(tassi).find((rate) => rate.start <= day && day < rate.endExclusive) || null;
   }
 
   function spezzaPeriodoPerTassi(dataInizio, dataFine, tassi) {
-    const start = dataInizio instanceof Date ? dataInizio : parseDateISO(dataInizio);
-    const end = dataFine instanceof Date ? dataFine : parseDateISO(dataFine);
+    const start = dataInizio instanceof Date ? dataInizio : parseDateInput(dataInizio, "Data iniziale");
+    const end = dataFine instanceof Date ? dataFine : parseDateInput(dataFine, "Data finale");
     if (end < start) throw new Error("Il periodo non è valido");
     const normalizedRates = normalizeRates(tassi);
     const segments = [];
@@ -148,18 +199,18 @@
       const dataPagamento = payment.dataPagamento || payment.data;
       const amount = parseImportoEuro(payment.importoPagamento ?? payment.importo ?? 0);
       if (amount === 0) continue;
-      parseDateISO(dataPagamento);
-      grouped.set(dataPagamento, (grouped.get(dataPagamento) || 0) + amount);
+      const normalizedDate = normalizeDateInput(dataPagamento, "Data del pagamento");
+      grouped.set(normalizedDate, (grouped.get(normalizedDate) || 0) + amount);
     }
     return [...grouped.entries()]
       .map(([dataPagamento, importoPagamento]) => ({ dataPagamento, importoPagamento }))
-      .sort((a, b) => parseDateISO(a.dataPagamento) - parseDateISO(b.dataPagamento));
+      .sort((a, b) => parseDateInput(a.dataPagamento) - parseDateInput(b.dataPagamento));
   }
 
   function getCommercialSchedule({ capitale, dataScadenza, dataFinale, pagamenti = [], tassi = [] }) {
     const start = addDays(dataScadenza, 1);
-    const end = parseDateISO(dataFinale);
-    const dueDate = parseDateISO(dataScadenza);
+    const end = parseDateInput(dataFinale, "Data del pagamento o della stima");
+    const dueDate = parseDateInput(dataScadenza, "Scadenza della fattura");
     const warnings = [];
 
     if (end < dueDate) throw new Error("La data finale non può precedere la scadenza");
@@ -175,9 +226,9 @@
     }
 
     const validPayments = normalizePayments(pagamenti).filter((payment) => {
-      const paymentDate = parseDateISO(payment.dataPagamento);
+      const paymentDate = parseDateInput(payment.dataPagamento, "Data del pagamento");
       if (paymentDate < start || paymentDate > end) {
-        warnings.push(`Pagamento del ${payment.dataPagamento} escluso: fuori dal periodo di calcolo.`);
+        warnings.push(`Pagamento del ${formatDateItalian(payment.dataPagamento)} escluso: fuori dal periodo di calcolo.`);
         return false;
       }
       return true;
@@ -216,7 +267,7 @@
       const baseBeforePayment = capitaleResiduo;
       const interest = rate ? calcolaInteresseSemplice(capitaleResiduo, rate.tassoAnnuo, cursor, cutPoint) : 0;
       if (!rate && giorni > 0) {
-        warnings.push(`Tasso non disponibile per il periodo ${formatDateISO(cursor)} - ${formatDateISO(addDays(cutPoint, -1))}.`);
+        warnings.push(`Tasso non disponibile per il periodo ${formatDateItalian(cursor)} - ${formatDateItalian(addDays(cutPoint, -1))}.`);
       }
 
       interessiNonPagati += interest;
@@ -231,7 +282,7 @@
         const quotaCapitale = Math.min(capitaleResiduo, residuoPagamento);
         capitaleResiduo -= quotaCapitale;
         if (residuoPagamento > quotaCapitale) {
-          warnings.push(`Pagamento del ${cutPointISO} superiore al debito stimato: eccedenza non imputata.`);
+          warnings.push(`Pagamento del ${formatDateItalian(cutPointISO)} superiore al debito stimato: eccedenza non imputata.`);
         }
       }
 
@@ -274,7 +325,7 @@
 
   function calcolaInteressiMaturatiAllaDomandaGiudiziale({ capitale, dataScadenza, dataDomandaGiudiziale, pagamenti, tassi }) {
     if (!dataDomandaGiudiziale) return 0;
-    const domanda = parseDateISO(dataDomandaGiudiziale);
+    const domanda = parseDateInput(dataDomandaGiudiziale, "Domanda giudiziale");
     const start = addDays(dataScadenza, 1);
     if (domanda <= start) return 0;
     const schedule = getCommercialSchedule({
@@ -311,14 +362,14 @@
       };
     }
 
-    const domanda = parseDateISO(dataDomandaGiudiziale);
-    const fine = parseDateISO(dataFinale);
+    const domanda = parseDateInput(dataDomandaGiudiziale, "Domanda giudiziale");
+    const fine = parseDateInput(dataFinale, "Data del pagamento o della stima");
     if (fine <= domanda) {
       warnings.push("La data finale non è successiva alla domanda giudiziale: anatocismo impostato a zero.");
       return { anatocismo: 0, giorni: 0, warnings };
     }
 
-    const giorniDaScadenzaADomanda = giorniTra(parseDateISO(dataScadenza), domanda);
+    const giorniDaScadenzaADomanda = giorniTra(parseDateInput(dataScadenza, "Scadenza della fattura"), domanda);
     if (giorniDaScadenzaADomanda < 183) {
       warnings.push("La data della domanda giudiziale sembra anteriore al requisito dei sei mesi: verificare l'art. 1283 c.c.");
     }
@@ -330,6 +381,9 @@
 
   function resolveAnatocismoRate({ tipoTassoAnatocismo, tassoPersonalizzato, dataDomandaGiudiziale, dataFinale, tassiCommerciali, tassiLegali }) {
     if (tipoTassoAnatocismo === "personalizzato") {
+      if (!String(tassoPersonalizzato ?? "").trim()) {
+        throw new Error("Tasso annuo personalizzato: campo obbligatorio se selezioni il tasso personalizzato");
+      }
       return {
         tassoAnatocismo: parseImportoEuro(tassoPersonalizzato || 0) / 100,
         warnings: [],
@@ -341,7 +395,7 @@
       return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato" };
     }
 
-    if (parseDateISO(dataFinale) <= parseDateISO(dataDomandaGiudiziale)) {
+    if (parseDateInput(dataFinale, "Data del pagamento o della stima") <= parseDateInput(dataDomandaGiudiziale, "Domanda giudiziale")) {
       return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato" };
     }
 
@@ -367,12 +421,17 @@
     tassi = global.tassiCommercialiPA || [],
     tassiLegali = global.tassiLegaliItalia || []
   }) {
+    if (!String(capitale ?? "").trim()) {
+      throw new Error("Importo della fattura: campo obbligatorio");
+    }
     const capitaleParsed = parseImportoEuro(capitale);
     if (capitaleParsed <= 0) throw new Error("Il capitale deve essere maggiore di zero");
 
-    parseDateISO(dataScadenza);
-    parseDateISO(dataFinale);
-    if (dataDomandaGiudiziale) parseDateISO(dataDomandaGiudiziale);
+    dataScadenza = normalizeDateInput(dataScadenza, "Scadenza della fattura");
+    dataFinale = normalizeDateInput(dataFinale, "Data del pagamento o della stima");
+    if (dataDomandaGiudiziale) {
+      dataDomandaGiudiziale = normalizeDateInput(dataDomandaGiudiziale, "Domanda giudiziale");
+    }
 
     const commerciali = calcolaInteressiCommerciali({
       capitale: capitaleParsed,
@@ -382,7 +441,7 @@
       tassi
     });
 
-    const domandaEntroPeriodo = dataDomandaGiudiziale && parseDateISO(dataDomandaGiudiziale) <= parseDateISO(dataFinale);
+    const domandaEntroPeriodo = dataDomandaGiudiziale && parseDateInput(dataDomandaGiudiziale) <= parseDateInput(dataFinale);
     const interessiMaturatiAllaDomanda = domandaEntroPeriodo ? calcolaInteressiMaturatiAllaDomandaGiudiziale({
       capitale: capitaleParsed,
       dataScadenza,
@@ -439,16 +498,24 @@
 
   function collectFormData() {
     const payments = [...document.querySelectorAll(".payment-row")].map((row) => ({
-      dataPagamento: row.querySelector("[data-payment-date]").value,
-      importoPagamento: row.querySelector("[data-payment-amount]").value
-    })).filter((payment) => payment.dataPagamento || payment.importoPagamento);
+      dataPagamento: row.querySelector("[data-payment-date]").value.trim(),
+      importoPagamento: row.querySelector("[data-payment-amount]").value.trim()
+    })).filter((payment) => payment.dataPagamento || payment.importoPagamento).map((payment) => {
+      if (!payment.importoPagamento) {
+        throw new Error("Importo pagato: campo obbligatorio se aggiungi un pagamento");
+      }
+      return {
+        dataPagamento: normalizeItalianFormDate(payment.dataPagamento, "Data del pagamento"),
+        importoPagamento: payment.importoPagamento
+      };
+    });
 
     return {
       capitale: document.querySelector("#capitale").value,
-      dataScadenza: document.querySelector("#dataScadenza").value,
-      dataFinale: document.querySelector("#dataFinale").value,
+      dataScadenza: normalizeItalianFormDate(document.querySelector("#dataScadenza").value, "Scadenza della fattura"),
+      dataFinale: normalizeItalianFormDate(document.querySelector("#dataFinale").value, "Data del pagamento o della stima"),
       pagamenti: payments,
-      dataDomandaGiudiziale: document.querySelector("#dataDomandaGiudiziale").value,
+      dataDomandaGiudiziale: normalizeItalianFormDate(document.querySelector("#dataDomandaGiudiziale").value, "Domanda giudiziale", { required: false }),
       tipoTassoAnatocismo: document.querySelector("#tipoTassoAnatocismo").value,
       tassoPersonalizzato: document.querySelector("#tassoPersonalizzato").value
     };
@@ -472,7 +539,7 @@
       for (const detail of result.righe) {
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td><span>${detail.dataInizio}</span><span class="period-separator">-</span><span>${detail.dataFine}</span></td>
+          <td><span>${formatDateItalian(detail.dataInizio)}</span><span class="period-separator">-</span><span>${formatDateItalian(detail.dataFine)}</span></td>
           <td>${detail.giorni}</td>
           <td>${formatEuro(detail.baseCalcolo)}</td>
           <td>${formatPercent(detail.tassoAnnuo)}</td>
@@ -506,14 +573,14 @@
     row.className = "payment-row";
     row.innerHTML = `
       <label>
-        <span>Data pagamento</span>
-        <input type="date" data-payment-date value="${payment.dataPagamento || ""}">
+        <span>Data del pagamento</span>
+        <input type="text" inputmode="numeric" data-payment-date placeholder="gg/mm/aaaa" autocomplete="off" value="${payment.dataPagamento || ""}">
       </label>
       <label>
-        <span>Importo</span>
+        <span>Importo pagato</span>
         <input type="text" inputmode="decimal" data-payment-amount placeholder="0,00" value="${payment.importoPagamento || ""}">
       </label>
-      <button class="icon-button" type="button" aria-label="Rimuovi pagamento" title="Rimuovi pagamento">x</button>
+      <button class="icon-button" type="button" aria-label="Rimuovi pagamento" title="Rimuovi pagamento">Rimuovi</button>
     `;
     row.querySelector("button").addEventListener("click", () => row.remove());
     container.appendChild(row);
@@ -522,11 +589,11 @@
   function resultToSummary(result) {
     return [
       "Calcolatore interessi commerciali PA",
-      `Capitale residuo: ${formatEuro(result.capitaleResiduo)}`,
-      `Interessi commerciali residui: ${formatEuro(result.interessiCommerciali)}`,
+      `Importo fattura ancora dovuto: ${formatEuro(result.capitaleResiduo)}`,
+      `Interessi moratori maturati: ${formatEuro(result.interessiCommerciali)}`,
       `Interessi maturati alla domanda giudiziale: ${formatEuro(result.interessiMaturatiAllaDomanda)}`,
-      `Anatocismo: ${formatEuro(result.anatocismo)}`,
-      `Totale stimato dovuto: ${formatEuro(result.totale)}`,
+      `Interessi anatocistici: ${formatEuro(result.anatocismo)}`,
+      `Totale stimato da pagare: ${formatEuro(result.totale)}`,
       "",
       "Ipotesi principali:",
       ...result.ipotesi.map((item) => `- ${item}`)
@@ -536,7 +603,7 @@
   function downloadCSV(result) {
     const header = ["periodo", "giorni", "base_calcolo", "tasso_annuo", "interessi", "pagamento", "capitale_residuo"];
     const rows = result.righe.map((row) => [
-      `${row.dataInizio} - ${row.dataFine}`,
+      `${formatDateItalian(row.dataInizio)} - ${formatDateItalian(row.dataFine)}`,
       row.giorni,
       row.baseCalcolo.toFixed(2),
       row.tassoAnnuo == null ? "" : row.tassoAnnuo,
@@ -571,6 +638,14 @@
     });
   }
 
+  function showCalculationError(message) {
+    const errorMessage = message || "Errore nel calcolo.";
+    renderList("#warningList", [errorMessage]);
+    document.querySelector("#errorPopupMessage").textContent = errorMessage;
+    document.querySelector("#errorPopup").hidden = false;
+    document.querySelector("#errorPopupClose").focus();
+  }
+
   function setupDom() {
     if (!global.document) return;
 
@@ -579,6 +654,9 @@
     renderList("#warningList", ["Inserisci i dati e premi Calcola."]);
 
     document.querySelector("#addPayment").addEventListener("click", () => addPaymentRow());
+    document.querySelector("#errorPopupClose").addEventListener("click", () => {
+      document.querySelector("#errorPopup").hidden = true;
+    });
     document.querySelector("#calculatorForm").addEventListener("submit", (event) => {
       event.preventDefault();
       try {
@@ -589,7 +667,7 @@
         });
         renderResults(result);
       } catch (error) {
-        renderList("#warningList", [error.message || "Errore nel calcolo."]);
+        showCalculationError(error.message);
       }
     });
 
@@ -625,6 +703,8 @@
     calcolaAnatocismo,
     calcolaTotale,
     formatDateISO,
+    formatDateItalian,
+    parseDateInput,
     addDays
   };
 

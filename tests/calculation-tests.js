@@ -12,7 +12,10 @@ assert.throws(() => calc.parseImportoEuro("-1"), /Importo/);
 assert.throws(() => calc.parseImportoEuro("abc"), /Importo/);
 
 assert.strictEqual(calc.giorniTra("2025-01-02", "2025-01-05"), 3);
+assert.strictEqual(calc.giorniTra("02/01/2025", "05/01/2025"), 3);
 assert.strictEqual(calc.formatDateISO(calc.addDays("2025-01-31", 1)), "2025-02-01");
+assert.strictEqual(calc.formatDateISO(calc.addDays("31/01/2025", 1)), "2025-02-01");
+assert.strictEqual(calc.formatDateItalian("2025-06-16"), "16/06/2025");
 
 const split = calc.spezzaPeriodoPerTassi("2025-06-29", "2025-07-02", tassiCommerciali);
 assert.strictEqual(split.length, 2);
@@ -25,8 +28,8 @@ approx(simpleInterest, 2.7397, 0.0001);
 
 const noPayments = calc.calcolaTotale({
   capitale: "1000",
-  dataScadenza: "2025-01-01",
-  dataFinale: "2025-01-12",
+  dataScadenza: "01/01/2025",
+  dataFinale: "12/01/2025",
   pagamenti: [],
   tassi: tassiCommerciali,
   tassiLegali
@@ -37,9 +40,9 @@ approx(noPayments.totale, 1003.05);
 
 const withPayment = calc.calcolaTotale({
   capitale: "1000",
-  dataScadenza: "2025-01-01",
-  dataFinale: "2025-01-12",
-  pagamenti: [{ dataPagamento: "2025-01-07", importoPagamento: "200" }],
+  dataScadenza: "01/01/2025",
+  dataFinale: "12/01/2025",
+  pagamenti: [{ dataPagamento: "07/01/2025", importoPagamento: "200" }],
   tassi: tassiCommerciali,
   tassiLegali
 });

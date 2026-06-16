@@ -28,6 +28,8 @@ Campi principali:
 - data della domanda giudiziale opzionale;
 - tasso anatocismo: commerciale/moratorio, legale o personalizzato.
 
+Le date vanno inserite nel formato italiano `gg/mm/aaaa`, ad esempio `16/06/2026`.
+
 ## Ipotesi di calcolo
 
 - Gli interessi commerciali sono calcolati come interessi semplici.
