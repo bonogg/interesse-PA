@@ -23,6 +23,19 @@ assert.strictEqual(split[0].dataInizio, "2025-06-29");
 assert.strictEqual(split[0].dataFine, "2025-07-01");
 assert.strictEqual(split[1].dataInizio, "2025-07-01");
 
+const legalOld = calc.spezzaPeriodoPerTassi("1980-01-01", "1980-01-02", tassiLegali);
+assert.strictEqual(legalOld.length, 1);
+assert.strictEqual(legalOld[0].tasso.tassoAnnuo, 0.05);
+
+const legal1990Change = calc.spezzaPeriodoPerTassi("1990-12-15", "1990-12-17", tassiLegali);
+assert.strictEqual(legal1990Change.length, 2);
+assert.strictEqual(legal1990Change[0].tasso.tassoAnnuo, 0.05);
+assert.strictEqual(legal1990Change[1].tasso.tassoAnnuo, 0.10);
+
+const legal1997 = calc.spezzaPeriodoPerTassi("1997-01-01", "1997-01-02", tassiLegali);
+assert.strictEqual(legal1997.length, 1);
+assert.strictEqual(legal1997[0].tasso.tassoAnnuo, 0.05);
+
 const legal2019 = calc.spezzaPeriodoPerTassi("2019-03-01", "2019-03-02", tassiLegali);
 assert.strictEqual(legal2019.length, 1);
 assert.strictEqual(legal2019[0].tasso.tassoAnnuo, 0.008);

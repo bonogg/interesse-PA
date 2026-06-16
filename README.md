@@ -57,7 +57,7 @@ Ogni riga contiene:
 - `fonteLabel`;
 - `fonteUrl`.
 
-I tassi legali sono annuali: quando selezioni il tasso legale per l'anatocismo, la data della domanda giudiziale e la data finale determinano automaticamente i tassi legali applicati ai rispettivi periodi.
+I tassi legali sono coperti dal `21/04/1942` al `31/12/2026`. Quando selezioni il tasso legale per l'anatocismo, la data della domanda giudiziale e la data finale determinano automaticamente i tassi legali applicati ai rispettivi periodi.
 
 Le tabelle devono essere verificate e mantenute aggiornate rispetto alle comunicazioni ufficiali MEF/Gazzetta Ufficiale. Le fonti normative principali da controllare sono:
 
