@@ -3,7 +3,7 @@
  *
  * Values are expressed as decimals: 0.08 = 8%.
  * Keep this file local and update it when official MEF/Gazzetta Ufficiale
- * notices publish new half-year rates.
+ * notices publish new half-year commercial rates or annual legal rates.
  */
 (function attachRates(global) {
   const tassiCommerciali = [
@@ -127,12 +127,26 @@
   ];
 
   const tassiLegali = [
+    { dataInizio: "2019-01-01", dataFine: "2019-12-31", tassoAnnuo: 0.008, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.gazzettaufficiale.it/" },
     { dataInizio: "2020-01-01", dataFine: "2020-12-31", tassoAnnuo: 0.0005, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" },
     { dataInizio: "2021-01-01", dataFine: "2021-12-31", tassoAnnuo: 0.0001, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" },
     { dataInizio: "2022-01-01", dataFine: "2022-12-31", tassoAnnuo: 0.0125, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" },
     { dataInizio: "2023-01-01", dataFine: "2023-12-31", tassoAnnuo: 0.05, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" },
     { dataInizio: "2024-01-01", dataFine: "2024-12-31", tassoAnnuo: 0.025, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" },
-    { dataInizio: "2025-01-01", dataFine: "2025-12-31", tassoAnnuo: 0.02, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.mef.gov.it/" }
+    {
+      dataInizio: "2025-01-01",
+      dataFine: "2025-12-31",
+      tassoAnnuo: 0.02,
+      fonteLabel: "MEF / Gazzetta Ufficiale, D.M. 10/12/2024",
+      fonteUrl: "https://www.gazzettaufficiale.it/atto/serie_generale/caricaDettaglioAtto/originario?atto.dataPubblicazioneGazzetta=2024-12-16&atto.codiceRedazionale=24A06721&elenco30giorni=false"
+    },
+    {
+      dataInizio: "2026-01-01",
+      dataFine: "2026-12-31",
+      tassoAnnuo: 0.02,
+      fonteLabel: "Art. 1284 c.c. / tasso 2025 confermato salvo modifica",
+      fonteUrl: "https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1284"
+    }
   ];
 
   global.tassiCommercialiPA = tassiCommerciali;

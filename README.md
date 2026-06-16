@@ -26,7 +26,7 @@ Campi principali:
 - data finale del calcolo;
 - pagamenti parziali opzionali;
 - data della domanda giudiziale opzionale;
-- tasso anatocismo: commerciale/moratorio, legale o personalizzato.
+- tasso anatocismo: commerciale/moratorio automatico, legale automatico per anno o personalizzato.
 
 Le date vanno inserite nel formato italiano `gg/mm/aaaa`, ad esempio `16/06/2026`.
 
@@ -45,7 +45,7 @@ Questo è uno strumento di stima e non costituisce consulenza legale.
 
 ## Tassi
 
-La tabella dei tassi commerciali è in `rates.js`.
+Le tabelle dei tassi commerciali e dei tassi legali sono in `rates.js`.
 
 Ogni riga contiene:
 
@@ -57,10 +57,13 @@ Ogni riga contiene:
 - `fonteLabel`;
 - `fonteUrl`.
 
-La tabella deve essere verificata e mantenuta aggiornata rispetto alle comunicazioni ufficiali MEF/Gazzetta Ufficiale. Le fonti normative principali da controllare sono:
+I tassi legali sono annuali: quando selezioni il tasso legale per l'anatocismo, la data della domanda giudiziale e la data finale determinano automaticamente i tassi legali applicati ai rispettivi periodi.
+
+Le tabelle devono essere verificate e mantenute aggiornate rispetto alle comunicazioni ufficiali MEF/Gazzetta Ufficiale. Le fonti normative principali da controllare sono:
 
 - D.Lgs. 231/2002 su Normattiva;
 - comunicati MEF/Gazzetta Ufficiale sui tassi semestrali;
+- decreti MEF/Gazzetta Ufficiale sul saggio annuale degli interessi legali;
 - art. 1283 c.c. per la valutazione dell'anatocismo.
 
 ## Test

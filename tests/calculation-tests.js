@@ -23,6 +23,10 @@ assert.strictEqual(split[0].dataInizio, "2025-06-29");
 assert.strictEqual(split[0].dataFine, "2025-07-01");
 assert.strictEqual(split[1].dataInizio, "2025-07-01");
 
+const legal2019 = calc.spezzaPeriodoPerTassi("2019-03-01", "2019-03-02", tassiLegali);
+assert.strictEqual(legal2019.length, 1);
+assert.strictEqual(legal2019[0].tasso.tassoAnnuo, 0.008);
+
 const simpleInterest = calc.calcolaInteresseSemplice(1000, 0.10, "2025-01-01", "2025-01-11");
 approx(simpleInterest, 2.7397, 0.0001);
 
@@ -63,6 +67,20 @@ const anatocism = calc.calcolaTotale({
 });
 assert.ok(anatocism.interessiMaturatiAllaDomanda > 50);
 assert.ok(anatocism.anatocismo > 2);
+
+const legalAnatocism = calc.calcolaTotale({
+  capitale: "1000",
+  dataScadenza: "2025-01-01",
+  dataFinale: "16/06/2026",
+  dataDomandaGiudiziale: "10/07/2025",
+  tipoTassoAnatocismo: "legale",
+  pagamenti: [],
+  tassi: tassiCommerciali,
+  tassiLegali
+});
+approx(legalAnatocism.tassoAnatocismoEffettivo, 0.02, 0.0001);
+assert.ok(legalAnatocism.ipotesi.some((item) => item.includes("Tassi anatocismo applicati automaticamente")));
+assert.ok(!legalAnatocism.warning.some((warning) => warning.includes("legale non copre")));
 
 const missingDomanda = calc.calcolaTotale({
   capitale: "1000",

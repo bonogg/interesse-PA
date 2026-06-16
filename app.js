@@ -349,7 +349,16 @@
       }
       total += calcolaInteresseSemplice(base, segment.tasso.tassoAnnuo, segment.dataInizio, segment.dataFine);
     }
-    return { interesse: roundMoney(total), uncovered };
+    return { interesse: total, uncovered, segments };
+  }
+
+  function descriviTassiApplicati(segments) {
+    return segments
+      .filter((segment) => segment.tasso)
+      .map((segment) => {
+        const endInclusive = addDays(segment.dataFine, -1);
+        return `${formatDateItalian(segment.dataInizio)}-${formatDateItalian(endInclusive)}: ${formatPercent(segment.tasso.tassoAnnuo)}`;
+      });
   }
 
   function calcolaAnatocismo({ interessiMaturatiAllaDomanda, dataDomandaGiudiziale, dataFinale, tassoAnatocismo, dataScadenza }) {
@@ -387,27 +396,28 @@
       return {
         tassoAnatocismo: parseImportoEuro(tassoPersonalizzato || 0) / 100,
         warnings: [],
-        label: "tasso annuo personalizzato"
+        label: "tasso annuo personalizzato",
+        dettaglioTassi: []
       };
     }
 
     if (!dataDomandaGiudiziale) {
-      return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato" };
+      return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato", dettaglioTassi: [] };
     }
 
     if (parseDateInput(dataFinale, "Data del pagamento o della stima") <= parseDateInput(dataDomandaGiudiziale, "Domanda giudiziale")) {
-      return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato" };
+      return { tassoAnatocismo: 0, warnings: [], label: "nessun tasso applicato", dettaglioTassi: [] };
     }
 
     const table = tipoTassoAnatocismo === "legale" ? tassiLegali : tassiCommerciali;
     const variableRate = calcolaInteresseVariabile(1, dataDomandaGiudiziale, dataFinale, table);
     const giorni = giorniTra(dataDomandaGiudiziale, dataFinale);
     const effectiveAnnualRate = giorni > 0 ? variableRate.interesse * 365 / giorni : 0;
-    const label = tipoTassoAnatocismo === "legale" ? "tasso legale variabile" : "tasso commerciale/moratorio variabile";
+    const label = tipoTassoAnatocismo === "legale" ? "tasso legale automatico per anno" : "tasso commerciale/moratorio automatico per semestre";
     const warnings = variableRate.uncovered
       ? [`Il tasso ${tipoTassoAnatocismo} non copre tutto il periodo dell'anatocismo.`]
       : [];
-    return { tassoAnatocismo: effectiveAnnualRate, warnings, label };
+    return { tassoAnatocismo: effectiveAnnualRate, warnings, label, dettaglioTassi: descriviTassiApplicati(variableRate.segments) };
   }
 
   function calcolaTotale({
@@ -479,6 +489,9 @@
       ipotesi: [
         ...DEFAULT_ASSUMPTIONS,
         `Tasso anatocismo selezionato: ${anatocismoRate.label}.`,
+        ...(anatocismoRate.dettaglioTassi.length
+          ? [`Tassi anatocismo applicati automaticamente: ${anatocismoRate.dettaglioTassi.join("; ")}.`]
+          : []),
         "La data iniziale del conteggio è inclusa; la data finale è esclusa. Per la mora, la data iniziale è il giorno successivo alla scadenza."
       ],
       righe: commerciali.righe,
