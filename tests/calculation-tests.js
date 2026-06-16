@@ -84,6 +84,6 @@ const domandaAfterFinal = calc.calcolaTotale({
 });
 assert.strictEqual(domandaAfterFinal.interessiMaturatiAllaDomanda, 0);
 assert.strictEqual(domandaAfterFinal.anatocismo, 0);
-assert.ok(domandaAfterFinal.warning.some((warning) => warning.includes("non e successiva")));
+assert.ok(domandaAfterFinal.warning.some((warning) => warning.includes("non è successiva")));
 
 console.log("All calculation tests passed.");

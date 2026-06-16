@@ -1,14 +1,14 @@
 (function initCalculator(global) {
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   const DEFAULT_ASSUMPTIONS = [
-    "Questo e uno strumento di stima, non una consulenza legale.",
+    "Questo è uno strumento di stima, non una consulenza legale.",
     "Gli interessi commerciali sono calcolati come interessi semplici.",
     "La tabella dei tassi deve essere verificata e mantenuta aggiornata.",
-    "L'anatocismo viene calcolato solo se e indicata una data di domanda giudiziale.",
-    "L'anatocismo viene calcolato solo sugli interessi gia maturati alla data della domanda giudiziale.",
+    "L'anatocismo viene calcolato solo se è indicata una data di domanda giudiziale.",
+    "L'anatocismo viene calcolato solo sugli interessi già maturati alla data della domanda giudiziale.",
     "Il calcolo usa la convenzione giorni effettivi / 365.",
     "I pagamenti parziali sono imputati prima agli interessi maturati e poi al capitale.",
-    "L'utente deve verificare se il tasso scelto per l'anatocismo e giuridicamente corretto nel caso concreto."
+    "L'utente deve verificare se il tasso scelto per l'anatocismo è giuridicamente corretto nel caso concreto."
   ];
 
   function roundMoney(value) {
@@ -100,7 +100,7 @@
   function spezzaPeriodoPerTassi(dataInizio, dataFine, tassi) {
     const start = dataInizio instanceof Date ? dataInizio : parseDateISO(dataInizio);
     const end = dataFine instanceof Date ? dataFine : parseDateISO(dataFine);
-    if (end < start) throw new Error("Il periodo non e valido");
+    if (end < start) throw new Error("Il periodo non è valido");
     const normalizedRates = normalizeRates(tassi);
     const segments = [];
     let cursor = start;
@@ -162,7 +162,7 @@
     const dueDate = parseDateISO(dataScadenza);
     const warnings = [];
 
-    if (end < dueDate) throw new Error("La data finale non puo precedere la scadenza");
+    if (end < dueDate) throw new Error("La data finale non può precedere la scadenza");
     if (end <= start) {
       return {
         capitaleResiduo: capitale,
@@ -314,7 +314,7 @@
     const domanda = parseDateISO(dataDomandaGiudiziale);
     const fine = parseDateISO(dataFinale);
     if (fine <= domanda) {
-      warnings.push("La data finale non e successiva alla domanda giudiziale: anatocismo impostato a zero.");
+      warnings.push("La data finale non è successiva alla domanda giudiziale: anatocismo impostato a zero.");
       return { anatocismo: 0, giorni: 0, warnings };
     }
 
@@ -420,7 +420,7 @@
       ipotesi: [
         ...DEFAULT_ASSUMPTIONS,
         `Tasso anatocismo selezionato: ${anatocismoRate.label}.`,
-        "La data iniziale del conteggio e inclusa; la data finale e esclusa. Per la mora, la data iniziale e il giorno successivo alla scadenza."
+        "La data iniziale del conteggio è inclusa; la data finale è esclusa. Per la mora, la data iniziale è il giorno successivo alla scadenza."
       ],
       righe: commerciali.righe,
       pagamentiTotali: commerciali.pagamentiTotali,

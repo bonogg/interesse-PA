@@ -32,18 +32,18 @@ Campi principali:
 
 - Gli interessi commerciali sono calcolati come interessi semplici.
 - La mora decorre dal giorno successivo alla scadenza.
-- La data iniziale del conteggio e inclusa; la data finale e esclusa.
-- La convenzione e giorni effettivi / 365.
+- La data iniziale del conteggio è inclusa; la data finale è esclusa.
+- La convenzione è giorni effettivi / 365.
 - I pagamenti parziali sono imputati prima agli interessi maturati e poi al capitale.
-- L'anatocismo viene calcolato solo se e indicata una data di domanda giudiziale.
-- L'anatocismo viene calcolato sugli interessi residui gia maturati alla data della domanda giudiziale.
+- L'anatocismo viene calcolato solo se è indicata una data di domanda giudiziale.
+- L'anatocismo viene calcolato sugli interessi residui già maturati alla data della domanda giudiziale.
 - L'anatocismo non viene ulteriormente capitalizzato.
 
-Questo e uno strumento di stima e non costituisce consulenza legale.
+Questo è uno strumento di stima e non costituisce consulenza legale.
 
 ## Tassi
 
-La tabella dei tassi commerciali e in `rates.js`.
+La tabella dei tassi commerciali è in `rates.js`.
 
 Ogni riga contiene:
 
