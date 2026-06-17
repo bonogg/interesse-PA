@@ -639,6 +639,7 @@
     document.querySelector("#calculatorForm").reset();
     document.querySelector("#paymentsContainer").innerHTML = "";
     addPaymentRow();
+    syncTassoPersonalizzatoState();
     renderResults({
       capitaleResiduo: 0,
       interessiCommerciali: 0,
@@ -650,6 +651,15 @@
       righe: [],
       tassoAnatocismoEffettivo: 0
     });
+  }
+
+  function syncTassoPersonalizzatoState() {
+    const rateType = document.querySelector("#tipoTassoAnatocismo").value;
+    const customRateInput = document.querySelector("#tassoPersonalizzato");
+    const isCustomRate = rateType === "personalizzato";
+    customRateInput.disabled = !isCustomRate;
+    customRateInput.placeholder = isCustomRate ? "10,15" : "Seleziona tasso fisso personalizzato";
+    if (!isCustomRate) customRateInput.value = "";
   }
 
   function showCalculationError(message) {
@@ -726,10 +736,12 @@
     if (!global.document) return;
 
     addPaymentRow();
+    syncTassoPersonalizzatoState();
     renderList("#assumptionList", DEFAULT_ASSUMPTIONS);
     renderList("#warningList", ["Inserisci i dati e premi Calcola."]);
 
     document.querySelector("#addPayment").addEventListener("click", () => addPaymentRow());
+    document.querySelector("#tipoTassoAnatocismo").addEventListener("change", syncTassoPersonalizzatoState);
     document.querySelector("#errorPopupClose").addEventListener("click", () => {
       document.querySelector("#errorPopup").hidden = true;
     });

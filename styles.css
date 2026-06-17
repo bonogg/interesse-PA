@@ -179,6 +179,15 @@ button:focus-visible {
   border-color: var(--accent);
 }
 
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+  background: #eef2f4;
+  color: var(--muted);
+  border-color: var(--line);
+}
+
 .section-row {
   display: flex;
   align-items: center;
