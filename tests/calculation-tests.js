@@ -54,6 +54,23 @@ const commercial2019 = calc.calcolaTotale({
 assert.ok(commercial2019.interessiCommerciali > 100);
 assert.ok(!commercial2019.warning.some((warning) => warning.includes("Tasso non disponibile")));
 
+const commercialIssuePeriod2019 = calc.calcolaTotale({
+  capitale: "1000",
+  dataScadenza: "15/02/2019",
+  dataFinale: "01/01/2020",
+  pagamenti: [],
+  tassi: tassiCommerciali,
+  tassiLegali
+});
+assert.ok(!commercialIssuePeriod2019.warning.some((warning) => warning.includes("Tasso non disponibile")));
+assert.deepStrictEqual(
+  commercialIssuePeriod2019.righe.map((row) => [row.dataInizio, row.dataFine, row.tassoAnnuo]),
+  [
+    ["2019-02-16", "2019-06-30", 0.08],
+    ["2019-07-01", "2019-12-31", 0.08]
+  ]
+);
+
 const noPayments = calc.calcolaTotale({
   capitale: "1000",
   dataScadenza: "01/01/2025",
