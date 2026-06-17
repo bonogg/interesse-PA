@@ -43,6 +43,17 @@ assert.strictEqual(legal2019[0].tasso.tassoAnnuo, 0.008);
 const simpleInterest = calc.calcolaInteresseSemplice(1000, 0.10, "2025-01-01", "2025-01-11");
 approx(simpleInterest, 2.7397, 0.0001);
 
+const commercial2019 = calc.calcolaTotale({
+  capitale: "200",
+  dataScadenza: "28/02/2019",
+  dataFinale: "16/06/2026",
+  pagamenti: [],
+  tassi: tassiCommerciali,
+  tassiLegali
+});
+assert.ok(commercial2019.interessiCommerciali > 100);
+assert.ok(!commercial2019.warning.some((warning) => warning.includes("Tasso non disponibile")));
+
 const noPayments = calc.calcolaTotale({
   capitale: "1000",
   dataScadenza: "01/01/2025",

@@ -8,6 +8,24 @@
 (function attachRates(global) {
   const tassiCommerciali = [
     {
+      dataInizio: "2019-01-01",
+      dataFine: "2019-06-30",
+      tassoRiferimento: 0,
+      maggiorazione: 0.08,
+      tassoAnnuo: 0.08,
+      fonteLabel: "MEF / Gazzetta Ufficiale",
+      fonteUrl: "https://www.mef.gov.it/"
+    },
+    {
+      dataInizio: "2019-07-01",
+      dataFine: "2019-12-31",
+      tassoRiferimento: 0,
+      maggiorazione: 0.08,
+      tassoAnnuo: 0.08,
+      fonteLabel: "MEF / Gazzetta Ufficiale",
+      fonteUrl: "https://www.mef.gov.it/"
+    },
+    {
       dataInizio: "2020-01-01",
       dataFine: "2020-06-30",
       tassoRiferimento: 0,

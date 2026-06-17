@@ -2,7 +2,9 @@
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
   const DEFAULT_ASSUMPTIONS = [
     "Questo è uno strumento di stima, non una consulenza legale.",
-    "Gli interessi commerciali sono calcolati come interessi semplici.",
+    "Il calcolo riguarda pagamenti dovuti da una pubblica amministrazione al creditore di una fattura commerciale.",
+    "Gli interessi moratori ex D.Lgs. 231/2002 sono calcolati come interessi semplici.",
+    "La scadenza deve essere inserita dall'utente: il tool non determina il termine legale applicabile né verifica eccezioni settoriali.",
     "La tabella dei tassi deve essere verificata e mantenuta aggiornata.",
     "L'anatocismo viene calcolato solo se è indicata una data di domanda giudiziale.",
     "L'anatocismo viene calcolato solo sugli interessi già maturati alla data della domanda giudiziale.",

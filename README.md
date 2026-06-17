@@ -1,6 +1,6 @@
 # Calcolatore interessi commerciali PA
 
-Calcolatore web statico, client-side e privacy-preserving per stimare:
+Calcolatore web statico, client-side e privacy-preserving per stimare importi dovuti da una pubblica amministrazione in ritardo nel pagamento di una fattura commerciale:
 
 - capitale residuo;
 - interessi commerciali/moratori ex D.Lgs. 231/2002;
@@ -36,6 +36,7 @@ Le date vanno inserite nel formato italiano `gg/mm/aaaa`, ad esempio `16/06/2026
 
 - Gli interessi commerciali sono calcolati come interessi semplici.
 - La mora decorre dal giorno successivo alla scadenza.
+- La scadenza deve essere inserita dall'utente: il tool non determina il termine legale applicabile né verifica eccezioni settoriali.
 - La data iniziale del conteggio è inclusa; la data finale è esclusa.
 - La convenzione è giorni effettivi / 365.
 - I pagamenti parziali sono imputati prima agli interessi maturati e poi al capitale.
@@ -59,7 +60,7 @@ Ogni riga contiene:
 - `fonteLabel`;
 - `fonteUrl`.
 
-I tassi legali sono coperti dal `21/04/1942` al `31/12/2026`. Quando selezioni il tasso legale per l'anatocismo, la data della domanda giudiziale e la data finale determinano automaticamente i tassi legali applicati ai rispettivi periodi.
+I tassi commerciali sono coperti dal `01/01/2019` al `30/06/2026`. I tassi legali sono coperti dal `21/04/1942` al `31/12/2026`. Quando selezioni il tasso legale per l'anatocismo, la data della domanda giudiziale e la data finale determinano automaticamente i tassi legali applicati ai rispettivi periodi.
 
 Le tabelle devono essere verificate e mantenute aggiornate rispetto alle comunicazioni ufficiali MEF/Gazzetta Ufficiale. Le fonti normative principali da controllare sono:
 
