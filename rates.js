@@ -127,7 +127,7 @@
   ];
 
   const tassiLegali = [
-    { dataInizio: "1942-04-21", dataFine: "1990-12-15", tassoAnnuo: 0.05, fonteLabel: "Codice civile, art. 1284", fonteUrl: "https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1284" },
+    { dataInizio: "1942-04-21", dataFine: "1990-12-15", tassoAnnuo: 0.05, fonteLabel: "Codice civile, art. 1284", fonteUrl: "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art1284" },
     { dataInizio: "1990-12-16", dataFine: "1996-12-31", tassoAnnuo: 0.10, fonteLabel: "Legge 26/11/1990 n. 353", fonteUrl: "https://www.gazzettaufficiale.it/" },
     { dataInizio: "1997-01-01", dataFine: "1998-12-31", tassoAnnuo: 0.05, fonteLabel: "Legge 23/12/1996 n. 662", fonteUrl: "https://www.gazzettaufficiale.it/" },
     { dataInizio: "1999-01-01", dataFine: "2000-12-31", tassoAnnuo: 0.025, fonteLabel: "MEF / Gazzetta Ufficiale", fonteUrl: "https://www.gazzettaufficiale.it/" },
@@ -161,7 +161,7 @@
       dataFine: "2026-12-31",
       tassoAnnuo: 0.02,
       fonteLabel: "Art. 1284 c.c. / tasso per l'anno corrente invariato rispetto all'anno precedente",
-      fonteUrl: "https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1284"
+      fonteUrl: "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art1284"
     }
   ];
 
