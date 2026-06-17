@@ -31,6 +31,7 @@ body {
 
 button,
 input,
+textarea,
 select {
   font: inherit;
 }
@@ -152,6 +153,7 @@ label {
 }
 
 input,
+textarea,
 select {
   width: 100%;
   min-height: 44px;
@@ -163,7 +165,13 @@ select {
   font-size: 0.98rem;
 }
 
+textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
 input:focus,
+textarea:focus,
 select:focus,
 button:focus-visible {
   outline: 3px solid rgba(15, 107, 122, 0.18);
@@ -335,7 +343,8 @@ button:focus-visible {
 }
 
 .detail-panel,
-.assumptions-panel {
+.assumptions-panel,
+.feedback-panel {
   margin-top: 20px;
 }
 
@@ -396,6 +405,32 @@ td:first-child {
 
 .assumptions-panel {
   box-shadow: none;
+}
+
+.feedback-panel {
+  padding: 22px;
+}
+
+.feedback-wide {
+  margin-top: 14px;
+}
+
+.feedback-consent {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.feedback-consent input {
+  width: 18px;
+  min-height: 18px;
+  margin: 3px 0 0;
+  padding: 0;
 }
 
 .assumption-list {

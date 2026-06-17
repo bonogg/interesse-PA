@@ -164,6 +164,56 @@
         </div>
         <ul id="assumptionList" class="assumption-list"></ul>
       </section>
+
+      <section class="panel feedback-panel" aria-labelledby="feedback-title">
+        <form id="feedbackForm">
+          <div class="panel-heading">
+            <h2 id="feedback-title">Suggerisci una correzione</h2>
+            <p>La segnalazione apre una issue pubblica su GitHub già strutturata.</p>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              <span>Nome, facoltativo</span>
+              <input id="feedbackName" name="feedbackName" type="text" autocomplete="name" placeholder="Mario Rossi">
+            </label>
+            <label>
+              <span>Tipo di segnalazione</span>
+              <select id="feedbackType" name="feedbackType">
+                <option value="Errore di calcolo">Errore di calcolo</option>
+                <option value="Tasso da aggiornare">Tasso da aggiornare</option>
+                <option value="Testo o italiano">Testo o italiano</option>
+                <option value="Funzionalità">Funzionalità</option>
+                <option value="Altro">Altro</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="feedback-wide">
+            <span>Oggetto</span>
+            <input id="feedbackSubject" name="feedbackSubject" type="text" maxlength="100" placeholder="Es. tasso legale 2026 da verificare">
+          </label>
+
+          <label class="feedback-wide">
+            <span>Descrizione</span>
+            <textarea id="feedbackDescription" name="feedbackDescription" rows="5" placeholder="Descrivi il problema, cosa ti aspettavi e dove hai notato l'errore."></textarea>
+          </label>
+
+          <label class="feedback-wide">
+            <span>Fonte o link, facoltativo</span>
+            <input id="feedbackSource" name="feedbackSource" type="text" inputmode="url" placeholder="https://...">
+          </label>
+
+          <label class="feedback-consent">
+            <input id="feedbackConsent" name="feedbackConsent" type="checkbox">
+            <span>Ho capito che la segnalazione sarà pubblica su GitHub e non contiene dati sensibili o dati di fatture reali.</span>
+          </label>
+
+          <div class="form-actions">
+            <button class="secondary-button" type="submit">Apri issue su GitHub</button>
+          </div>
+        </form>
+      </section>
     </main>
 
     <div id="errorPopup" class="error-popup" hidden role="alertdialog" aria-modal="true" aria-labelledby="errorPopupTitle">
