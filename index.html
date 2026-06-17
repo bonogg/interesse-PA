@@ -24,6 +24,18 @@
     </header>
 
     <main class="page-shell">
+      <section class="panel intro-panel" aria-labelledby="intro-title">
+        <div class="panel-heading">
+          <h2 id="intro-title">A cosa serve questo calcolatore</h2>
+          <p>Il tool stima l'importo dovuto in caso di ritardo nel pagamento di una fattura verso una pubblica amministrazione: capitale residuo, interessi moratori, eventuali interessi anatocistici e totale finale.</p>
+        </div>
+        <ul class="source-list" aria-label="Fonti principali del calcolo">
+          <li>Interessi moratori: <a href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2002-10-09;231" target="_blank" rel="noopener">D.Lgs. 231/2002</a> e <a href="https://eur-lex.europa.eu/legal-content/IT/TXT/?uri=CELEX:32011L0007" target="_blank" rel="noopener">Direttiva 2011/7/UE</a> sui ritardi di pagamento.</li>
+          <li>Anatocismo: <a href="https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1283" target="_blank" rel="noopener">art. 1283 c.c.</a>, con calcolo separato quando viene indicata una domanda giudiziale.</li>
+          <li>Tassi: comunicati MEF/Gazzetta Ufficiale per i tassi commerciali e <a href="https://www.gazzettaufficiale.it/atto/codici/caricaArticolo?art.codiceRedazionale=042U0262&art.idArticolo=1284" target="_blank" rel="noopener">art. 1284 c.c.</a> con decreti MEF per il tasso legale.</li>
+        </ul>
+      </section>
+
       <section class="workspace" aria-label="Calcolatore">
         <form id="calculatorForm" class="panel input-panel">
           <div class="panel-heading">

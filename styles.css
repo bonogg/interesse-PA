@@ -104,6 +104,39 @@ h1 {
   padding: 28px 0 44px;
 }
 
+.intro-panel {
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+
+.intro-panel .panel-heading {
+  max-width: 920px;
+  margin-bottom: 14px;
+}
+
+.source-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.source-list li {
+  padding-left: 14px;
+  border-left: 3px solid var(--accent-soft);
+}
+
+.source-list a {
+  color: var(--accent-strong);
+  font-weight: 800;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(360px, 0.95fr);
@@ -494,6 +527,14 @@ td:first-child {
   }
 
   .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-panel {
+    padding: 18px;
+  }
+
+  .source-list {
     grid-template-columns: 1fr;
   }
 
