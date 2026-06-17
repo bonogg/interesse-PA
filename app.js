@@ -3,14 +3,17 @@
   const DEFAULT_ASSUMPTIONS = [
     "Questo è uno strumento di stima, non una consulenza legale.",
     "Il calcolo riguarda pagamenti dovuti da una pubblica amministrazione al creditore di una fattura commerciale.",
+    "Il credito deve derivare da una transazione commerciale: beni o servizi contro prezzo tra impresa/professionista e pubblica amministrazione.",
     "Gli interessi moratori ex D.Lgs. 231/2002 sono calcolati come interessi semplici.",
-    "La scadenza deve essere inserita dall'utente: il tool non determina il termine legale applicabile né verifica eccezioni settoriali.",
+    "La scadenza deve essere inserita dall'utente: di regola 30 giorni, oppure 60 giorni solo nei casi ammessi e giustificati.",
     "La tabella dei tassi deve essere verificata e mantenuta aggiornata.",
     "L'anatocismo viene calcolato solo se è indicata una data di domanda giudiziale.",
-    "L'anatocismo viene calcolato solo sugli interessi già maturati alla data della domanda giudiziale.",
+    "L'anatocismo viene calcolato solo sugli interessi moratori residui già maturati da almeno sei mesi alla data della domanda giudiziale.",
+    "Nessuna capitalizzazione viene applicata agli interessi anatocistici.",
+    "Il forfait di 40 euro ex art. 6 e gli eventuali maggiori costi provati sono inclusi solo se indicati dall'utente.",
     "Il calcolo usa la convenzione giorni effettivi / 365.",
     "I pagamenti parziali sono imputati prima agli interessi maturati e poi al capitale.",
-    "L'utente deve verificare se il tasso scelto per l'anatocismo è giuridicamente corretto nel caso concreto."
+    "L'utente deve verificare termini speciali, eccezioni settoriali e applicabilità concreta del D.Lgs. 231/2002."
   ];
   const GITHUB_NEW_ISSUE_URL = "https://github.com/bonogg/interesse-PA/issues/new";
 
@@ -126,6 +129,15 @@
   function addDays(value, days) {
     const date = value instanceof Date ? value : parseDateInput(value);
     return new Date(date.getTime() + days * MS_PER_DAY);
+  }
+
+  function addMonths(value, months) {
+    const date = value instanceof Date ? value : parseDateInput(value);
+    const targetMonth = date.getUTCMonth() + months;
+    const target = new Date(Date.UTC(date.getUTCFullYear(), targetMonth, 1));
+    const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+    target.setUTCDate(Math.min(date.getUTCDate(), lastDay));
+    return target;
   }
 
   function giorniTra(dataInizio, dataFine) {
@@ -341,6 +353,92 @@
     return schedule.totaleInteressiCommerciali;
   }
 
+  function calcolaBaseAnatocismo({ capitale, dataScadenza, dataDomandaGiudiziale, pagamenti, tassi }) {
+    const warnings = [];
+    if (!dataDomandaGiudiziale) {
+      return { baseAnatocismo: 0, dataLimiteSeiMesi: "", warnings };
+    }
+
+    const domanda = parseDateInput(dataDomandaGiudiziale, "Domanda giudiziale");
+    const start = addDays(dataScadenza, 1);
+    const limiteSeiMesi = addMonths(domanda, -6);
+    if (limiteSeiMesi <= start) {
+      warnings.push("La domanda giudiziale non rispetta il requisito dei sei mesi per l'anatocismo: anatocismo impostato a zero.");
+      return {
+        baseAnatocismo: 0,
+        dataLimiteSeiMesi: formatDateISO(limiteSeiMesi),
+        warnings
+      };
+    }
+
+    const validPayments = normalizePayments(pagamenti).filter((payment) => {
+      const paymentDate = parseDateInput(payment.dataPagamento, "Data del pagamento");
+      return paymentDate >= start && paymentDate <= domanda;
+    });
+    const paymentByDate = new Map(validPayments.map((payment) => [payment.dataPagamento, payment.importoPagamento]));
+    const rateSegments = spezzaPeriodoPerTassi(start, domanda, tassi);
+    const cutPoints = new Map();
+    cutPoints.set(formatDateISO(domanda), "domanda");
+    cutPoints.set(formatDateISO(limiteSeiMesi), "sei mesi");
+
+    for (const segment of rateSegments) {
+      cutPoints.set(segment.dataFine, "tasso");
+    }
+    for (const payment of validPayments) {
+      cutPoints.set(payment.dataPagamento, "pagamento");
+    }
+
+    const orderedCutPoints = [...cutPoints.keys()]
+      .map((date) => parseDateISO(date))
+      .filter((date) => date >= start && date <= domanda)
+      .sort((a, b) => a - b);
+
+    let cursor = start;
+    let capitaleResiduo = capitale;
+    const interestBuckets = [];
+
+    for (const cutPoint of orderedCutPoints) {
+      if (cutPoint < cursor) continue;
+      const cutPointISO = formatDateISO(cutPoint);
+      const rate = trovaTassoAllaData(cursor, tassi);
+      const giorni = giorniTra(cursor, cutPoint);
+      if (rate && giorni > 0 && capitaleResiduo > 0) {
+        interestBuckets.push({
+          maturityDate: cutPoint,
+          amount: calcolaInteresseSemplice(capitaleResiduo, rate.tassoAnnuo, cursor, cutPoint)
+        });
+      } else if (!rate && giorni > 0) {
+        warnings.push(`Tasso non disponibile per la base anatocismo nel periodo ${formatDateItalian(cursor)} - ${formatDateItalian(addDays(cutPoint, -1))}.`);
+      }
+
+      let pagamento = paymentByDate.get(cutPointISO) || 0;
+      if (pagamento > 0) {
+        for (const bucket of interestBuckets) {
+          if (pagamento <= 0) break;
+          const quotaInteressi = Math.min(bucket.amount, pagamento);
+          bucket.amount -= quotaInteressi;
+          pagamento -= quotaInteressi;
+        }
+        if (pagamento > 0) {
+          const quotaCapitale = Math.min(capitaleResiduo, pagamento);
+          capitaleResiduo -= quotaCapitale;
+        }
+      }
+
+      cursor = cutPoint;
+    }
+
+    const baseAnatocismo = interestBuckets
+      .filter((bucket) => bucket.maturityDate <= limiteSeiMesi)
+      .reduce((total, bucket) => total + bucket.amount, 0);
+
+    return {
+      baseAnatocismo: roundMoney(baseAnatocismo),
+      dataLimiteSeiMesi: formatDateISO(limiteSeiMesi),
+      warnings
+    };
+  }
+
   function calcolaInteresseVariabile(base, dataInizio, dataFine, tassi) {
     let total = 0;
     let uncovered = false;
@@ -364,7 +462,7 @@
       });
   }
 
-  function calcolaAnatocismo({ interessiMaturatiAllaDomanda, dataDomandaGiudiziale, dataFinale, tassoAnatocismo, dataScadenza }) {
+  function calcolaAnatocismo({ baseAnatocismo, dataDomandaGiudiziale, dataFinale, tassoAnatocismo }) {
     const warnings = [];
     if (!dataDomandaGiudiziale) {
       return {
@@ -381,13 +479,13 @@
       return { anatocismo: 0, giorni: 0, warnings };
     }
 
-    const giorniDaScadenzaADomanda = giorniTra(parseDateInput(dataScadenza, "Scadenza della fattura"), domanda);
-    if (giorniDaScadenzaADomanda < 183) {
-      warnings.push("La data della domanda giudiziale sembra anteriore al requisito dei sei mesi: verificare l'art. 1283 c.c.");
+    if (baseAnatocismo <= 0) {
+      warnings.push("Nessuna base anatocistica ammessa: interessi moratori non maturati da almeno sei mesi o già assorbiti dai pagamenti.");
+      return { anatocismo: 0, giorni: 0, warnings };
     }
 
     const giorni = giorniTra(domanda, fine);
-    const anatocismo = interessiMaturatiAllaDomanda * tassoAnatocismo * giorni / 365;
+    const anatocismo = baseAnatocismo * tassoAnatocismo * giorni / 365;
     return { anatocismo: roundMoney(anatocismo), giorni, warnings };
   }
 
@@ -431,6 +529,8 @@
     dataDomandaGiudiziale = "",
     tipoTassoAnatocismo = "commerciale",
     tassoPersonalizzato = "",
+    includiForfait40 = false,
+    maggioriCostiProvati = "",
     tassi = global.tassiCommercialiPA || [],
     tassiLegali = global.tassiLegaliItalia || []
   }) {
@@ -462,6 +562,13 @@
       pagamenti,
       tassi
     }) : 0;
+    const baseAnatocismoResult = domandaEntroPeriodo ? calcolaBaseAnatocismo({
+      capitale: capitaleParsed,
+      dataScadenza,
+      dataDomandaGiudiziale,
+      pagamenti,
+      tassi
+    }) : { baseAnatocismo: 0, dataLimiteSeiMesi: "", warnings: [] };
 
     const anatocismoRate = resolveAnatocismoRate({
       tipoTassoAnatocismo,
@@ -473,25 +580,34 @@
     });
 
     const anatocismo = calcolaAnatocismo({
-      interessiMaturatiAllaDomanda,
+      baseAnatocismo: baseAnatocismoResult.baseAnatocismo,
       dataDomandaGiudiziale,
       dataFinale,
-      tassoAnatocismo: anatocismoRate.tassoAnatocismo,
-      dataScadenza
+      tassoAnatocismo: anatocismoRate.tassoAnatocismo
     });
 
-    const totale = commerciali.capitaleResiduo + commerciali.totaleInteressiCommerciali + anatocismo.anatocismo;
+    const forfaitRecuperoCosti = includiForfait40 === true || includiForfait40 === "on" ? 40 : 0;
+    const maggioriCosti = String(maggioriCostiProvati ?? "").trim()
+      ? parseImportoEuro(maggioriCostiProvati)
+      : 0;
+    const totale = commerciali.capitaleResiduo + commerciali.totaleInteressiCommerciali + anatocismo.anatocismo + forfaitRecuperoCosti + maggioriCosti;
     return {
       capitaleResiduo: roundMoney(commerciali.capitaleResiduo),
       interessiCommerciali: roundMoney(commerciali.totaleInteressiCommerciali),
       interessiCommercialiLordi: roundMoney(commerciali.interessiLordiMaturati),
       interessiMaturatiAllaDomanda: roundMoney(interessiMaturatiAllaDomanda),
+      baseAnatocismo: roundMoney(baseAnatocismoResult.baseAnatocismo),
       anatocismo: roundMoney(anatocismo.anatocismo),
+      forfaitRecuperoCosti: roundMoney(forfaitRecuperoCosti),
+      maggioriCostiProvati: roundMoney(maggioriCosti),
       totale: roundMoney(totale),
-      warning: [...commerciali.warnings, ...anatocismoRate.warnings, ...anatocismo.warnings],
+      warning: [...commerciali.warnings, ...baseAnatocismoResult.warnings, ...anatocismoRate.warnings, ...anatocismo.warnings],
       ipotesi: [
         ...DEFAULT_ASSUMPTIONS,
-        `Tasso anatocismo selezionato: ${anatocismoRate.label}.`,
+        `Tasso anatocismo applicato: ${anatocismoRate.label}.`,
+        ...(baseAnatocismoResult.dataLimiteSeiMesi
+          ? [`Base anatocismo: interessi moratori residui maturati fino al ${formatDateItalian(baseAnatocismoResult.dataLimiteSeiMesi)}.`]
+          : []),
         ...(anatocismoRate.dettaglioTassi.length
           ? [`Tassi anatocismo applicati automaticamente: ${anatocismoRate.dettaglioTassi.join("; ")}.`]
           : []),
@@ -532,8 +648,10 @@
       dataFinale: normalizeItalianFormDate(document.querySelector("#dataFinale").value, "Data del pagamento o della stima"),
       pagamenti: payments,
       dataDomandaGiudiziale: normalizeItalianFormDate(document.querySelector("#dataDomandaGiudiziale").value, "Domanda giudiziale", { required: false }),
-      tipoTassoAnatocismo: document.querySelector("#tipoTassoAnatocismo").value,
-      tassoPersonalizzato: document.querySelector("#tassoPersonalizzato").value
+      tipoTassoAnatocismo: "commerciale",
+      tassoPersonalizzato: "",
+      includiForfait40: document.querySelector("#includiForfait40").checked,
+      maggioriCostiProvati: document.querySelector("#maggioriCostiProvati").value
     };
   }
 
@@ -541,8 +659,11 @@
     document.querySelector("#capitaleResiduo").textContent = formatEuro(result.capitaleResiduo);
     document.querySelector("#interessiCommerciali").textContent = formatEuro(result.interessiCommerciali);
     document.querySelector("#anatocismo").textContent = formatEuro(result.anatocismo);
+    document.querySelector("#forfaitRecuperoCosti").textContent = formatEuro(result.forfaitRecuperoCosti);
+    document.querySelector("#maggioriCostiProvatiRisultato").textContent = formatEuro(result.maggioriCostiProvati);
     document.querySelector("#totaleDovuto").textContent = formatEuro(result.totale);
     document.querySelector("#interessiDomanda").textContent = formatEuro(result.interessiMaturatiAllaDomanda);
+    document.querySelector("#baseAnatocismo").textContent = formatEuro(result.baseAnatocismo);
     document.querySelector("#tassoAnatocismoEffettivo").textContent = formatPercent(result.tassoAnatocismoEffettivo);
 
     const tableBody = document.querySelector("#detailRows");
@@ -608,7 +729,10 @@
       `Importo fattura ancora dovuto: ${formatEuro(result.capitaleResiduo)}`,
       `Interessi moratori maturati: ${formatEuro(result.interessiCommerciali)}`,
       `Interessi maturati alla domanda giudiziale: ${formatEuro(result.interessiMaturatiAllaDomanda)}`,
+      `Base anatocismo ammessa: ${formatEuro(result.baseAnatocismo)}`,
       `Interessi anatocistici: ${formatEuro(result.anatocismo)}`,
+      `Forfait recupero costi: ${formatEuro(result.forfaitRecuperoCosti)}`,
+      `Maggiori costi provati: ${formatEuro(result.maggioriCostiProvati)}`,
       `Totale stimato da pagare: ${formatEuro(result.totale)}`,
       "",
       "Ipotesi principali:",
@@ -646,7 +770,10 @@
       capitaleResiduo: 0,
       interessiCommerciali: 0,
       interessiMaturatiAllaDomanda: 0,
+      baseAnatocismo: 0,
       anatocismo: 0,
+      forfaitRecuperoCosti: 0,
+      maggioriCostiProvati: 0,
       totale: 0,
       warning: ["Inserisci i dati e premi Calcola."],
       ipotesi: DEFAULT_ASSUMPTIONS,
@@ -656,6 +783,7 @@
   }
 
   function syncTassoPersonalizzatoState() {
+    if (!document.querySelector("#tipoTassoAnatocismo")) return;
     const rateType = document.querySelector("#tipoTassoAnatocismo").value;
     const customRateInput = document.querySelector("#tassoPersonalizzato");
     const isCustomRate = rateType === "personalizzato";
@@ -743,7 +871,9 @@
     renderList("#warningList", ["Inserisci i dati e premi Calcola."]);
 
     document.querySelector("#addPayment").addEventListener("click", () => addPaymentRow());
-    document.querySelector("#tipoTassoAnatocismo").addEventListener("change", syncTassoPersonalizzatoState);
+    if (document.querySelector("#tipoTassoAnatocismo")) {
+      document.querySelector("#tipoTassoAnatocismo").addEventListener("change", syncTassoPersonalizzatoState);
+    }
     document.querySelector("#errorPopupClose").addEventListener("click", () => {
       document.querySelector("#errorPopup").hidden = true;
     });
@@ -791,12 +921,14 @@
     applicaPagamentiParziali,
     calcolaInteressiCommerciali,
     calcolaInteressiMaturatiAllaDomandaGiudiziale,
+    calcolaBaseAnatocismo,
     calcolaAnatocismo,
     calcolaTotale,
     formatDateISO,
     formatDateItalian,
     parseDateInput,
-    addDays
+    addDays,
+    addMonths
   };
 
   global.InteressiPACalculator = api;

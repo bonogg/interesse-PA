@@ -83,14 +83,41 @@ const anatocism = calc.calcolaTotale({
   dataScadenza: "2025-01-01",
   dataFinale: "2025-12-31",
   dataDomandaGiudiziale: "2025-07-10",
-  tipoTassoAnatocismo: "personalizzato",
-  tassoPersonalizzato: "10",
   pagamenti: [],
   tassi: tassiCommerciali,
   tassiLegali
 });
 assert.ok(anatocism.interessiMaturatiAllaDomanda > 50);
-assert.ok(anatocism.anatocismo > 2);
+assert.ok(anatocism.baseAnatocismo > 0);
+assert.ok(anatocism.baseAnatocismo < anatocism.interessiMaturatiAllaDomanda);
+assert.ok(anatocism.anatocismo > 0);
+
+const earlyAnatocism = calc.calcolaTotale({
+  capitale: "1000",
+  dataScadenza: "2025-01-01",
+  dataFinale: "2025-12-31",
+  dataDomandaGiudiziale: "2025-06-01",
+  pagamenti: [],
+  tassi: tassiCommerciali,
+  tassiLegali
+});
+assert.strictEqual(earlyAnatocism.baseAnatocismo, 0);
+assert.strictEqual(earlyAnatocism.anatocismo, 0);
+assert.ok(earlyAnatocism.warning.some((warning) => warning.includes("sei mesi")));
+
+const withRecoveryCosts = calc.calcolaTotale({
+  capitale: "1000",
+  dataScadenza: "01/01/2025",
+  dataFinale: "12/01/2025",
+  includiForfait40: true,
+  maggioriCostiProvati: "15,50",
+  pagamenti: [],
+  tassi: tassiCommerciali,
+  tassiLegali
+});
+approx(withRecoveryCosts.forfaitRecuperoCosti, 40);
+approx(withRecoveryCosts.maggioriCostiProvati, 15.50);
+approx(withRecoveryCosts.totale, noPayments.totale + 55.50);
 
 const legalAnatocism = calc.calcolaTotale({
   capitale: "1000",

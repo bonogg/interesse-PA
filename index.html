@@ -27,12 +27,13 @@
       <section class="panel intro-panel" aria-labelledby="intro-title">
         <div class="panel-heading">
           <h2 id="intro-title">A cosa serve questo calcolatore</h2>
-          <p>Il tool stima l'importo che una pubblica amministrazione deve pagare in caso di ritardo nel pagamento di una fattura commerciale: capitale residuo, interessi moratori, eventuali interessi anatocistici e totale finale.</p>
+          <p>Il tool stima l'importo che una pubblica amministrazione deve pagare in caso di ritardo nel pagamento di una fattura commerciale: capitale residuo, interessi moratori, eventuali interessi anatocistici, forfait di recupero costi e totale finale.</p>
         </div>
         <ul class="source-list" aria-label="Fonti principali del calcolo">
           <li>Interessi moratori: <a href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:decreto.legislativo:2002-10-09;231" target="_blank" rel="noopener">D.Lgs. 231/2002</a> e <a href="https://eur-lex.europa.eu/legal-content/IT/TXT/?uri=CELEX:32011L0007" target="_blank" rel="noopener">Direttiva 2011/7/UE</a> sui ritardi di pagamento.</li>
           <li>Anatocismo: <a href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art1283" target="_blank" rel="noopener">art. 1283 c.c.</a>, con calcolo separato quando viene indicata una domanda giudiziale.</li>
           <li>Tassi: comunicati MEF/Gazzetta Ufficiale per i tassi commerciali e <a href="https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:regio.decreto:1942-03-16;262~art1284" target="_blank" rel="noopener">art. 1284 c.c.</a> con decreti MEF per il tasso legale.</li>
+          <li>Recupero costi: forfait di 40 euro e maggiori costi provati secondo l'art. 6 del D.Lgs. 231/2002.</li>
           <li>Scadenza: deve essere inserita dall'utente; il tool non verifica termini legali, eccezioni settoriali o la riconducibilità della fattura al D.Lgs. 231/2002.</li>
         </ul>
       </section>
@@ -69,21 +70,20 @@
           </div>
           <div id="paymentsContainer" class="payments" aria-live="polite"></div>
 
-          <div class="field-grid rate-grid">
-            <label>
-              <span>Tasso da applicare agli interessi dopo la domanda</span>
-              <select id="tipoTassoAnatocismo" name="tipoTassoAnatocismo">
-                <option value="commerciale" selected>Commerciale / moratorio automatico</option>
-                <option value="legale">Legale automatico per anno</option>
-                <option value="personalizzato">Tasso fisso personalizzato</option>
-              </select>
+          <div class="section-row">
+            <h3>Altre componenti del totale</h3>
+          </div>
+          <div class="field-grid extras-grid">
+            <label class="checkbox-field">
+              <input id="includiForfait40" name="includiForfait40" type="checkbox">
+              <span>Aggiungi forfait recupero costi ex art. 6 (€ 40)</span>
             </label>
             <label>
-              <span>Tasso annuo personalizzato (%)</span>
-              <input id="tassoPersonalizzato" name="tassoPersonalizzato" type="text" inputmode="decimal" placeholder="Seleziona tasso fisso personalizzato" autocomplete="off" disabled>
+              <span>Maggiori costi provati (€)</span>
+              <input id="maggioriCostiProvati" name="maggioriCostiProvati" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">
             </label>
           </div>
-          <p class="field-hint">Se scegli il tasso legale, il calcolo usa automaticamente il tasso del periodo di riferimento. Copertura: dal 21/04/1942 al 31/12/2026.</p>
+          <p class="field-hint">L'anatocismo, se dovuto, usa automaticamente il tasso moratorio semestrale e solo la base maturata da almeno sei mesi alla domanda giudiziale.</p>
 
           <div class="form-actions">
             <button class="primary-button" type="submit">Calcola</button>
@@ -110,6 +110,14 @@
               <dt>Interessi anatocistici</dt>
               <dd id="anatocismo">&euro; 0,00</dd>
             </div>
+            <div>
+              <dt>Forfait recupero costi</dt>
+              <dd id="forfaitRecuperoCosti">&euro; 0,00</dd>
+            </div>
+            <div>
+              <dt>Maggiori costi provati</dt>
+              <dd id="maggioriCostiProvatiRisultato">&euro; 0,00</dd>
+            </div>
             <div class="total-row">
               <dt>Totale stimato da pagare</dt>
               <dd id="totaleDovuto">&euro; 0,00</dd>
@@ -120,6 +128,10 @@
             <div>
               <span>Interessi maturati fino alla domanda giudiziale</span>
               <strong id="interessiDomanda">&euro; 0,00</strong>
+            </div>
+            <div>
+              <span>Base anatocismo ammessa</span>
+              <strong id="baseAnatocismo">&euro; 0,00</strong>
             </div>
             <div>
               <span>Tasso anatocismo effettivo</span>
