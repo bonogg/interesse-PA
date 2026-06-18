@@ -255,6 +255,7 @@ select:disabled {
 }
 
 .extras-grid {
+  grid-template-columns: 1fr;
   margin-top: 4px;
 }
 
