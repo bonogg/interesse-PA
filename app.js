@@ -15,8 +15,6 @@
     "I pagamenti parziali sono imputati prima agli interessi maturati e poi al capitale.",
     "L'utente deve verificare termini speciali, eccezioni settoriali e applicabilità concreta del D.Lgs. 231/2002."
   ];
-  const GITHUB_NEW_ISSUE_URL = "https://github.com/bonogg/interesse-PA/issues/new";
-
   function roundMoney(value) {
     return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
   }
@@ -804,59 +802,19 @@
     return document.querySelector(selector).value.trim();
   }
 
-  function buildFeedbackIssueUrl() {
-    const name = getFeedbackValue("#feedbackName") || "Non indicato";
-    const type = getFeedbackValue("#feedbackType");
+  function submitFeedback(event) {
+    event.preventDefault();
+    const status = document.querySelector("#feedbackStatus");
+    status.hidden = true;
     const subject = getFeedbackValue("#feedbackSubject");
     const description = getFeedbackValue("#feedbackDescription");
-    const source = getFeedbackValue("#feedbackSource") || "Non indicata";
-    const consent = document.querySelector("#feedbackConsent").checked;
 
-    if (!subject) throw new Error("Oggetto della segnalazione: campo obbligatorio");
-    if (!description) throw new Error("Descrizione della segnalazione: campo obbligatorio");
-    if (!consent) {
-      throw new Error("Conferma che la segnalazione sarà pubblica e non contiene dati sensibili.");
-    }
-
-    const title = `[${type}] ${subject}`;
-    const body = [
-      "## Segnalazione",
-      "",
-      `**Tipo:** ${type}`,
-      `**Oggetto:** ${subject}`,
-      `**Segnalato da:** ${name}`,
-      `**Fonte o link:** ${source}`,
-      "",
-      "## Descrizione",
-      "",
-      description,
-      "",
-      "## Criteri di accettazione suggeriti",
-      "",
-      "- [ ] Verificare la segnalazione",
-      "- [ ] Aggiornare codice, testi o tassi se necessario",
-      "- [ ] Aggiungere o aggiornare test",
-      "- [ ] Verificare il sito pubblicato",
-      "",
-      "## Note privacy",
-      "",
-      "L'utente ha confermato di non aver inserito dati sensibili o dati di fatture reali."
-    ].join("\n");
-
-    const params = new URLSearchParams({
-      title,
-      body,
-      labels: "feedback,needs-triage"
-    });
-    return `${GITHUB_NEW_ISSUE_URL}?${params.toString()}`;
-  }
-
-  function openFeedbackIssue(event) {
-    event.preventDefault();
     try {
-      const issueUrl = buildFeedbackIssueUrl();
-      const issueWindow = global.open(issueUrl, "_blank", "noopener,noreferrer");
-      if (!issueWindow) global.location.href = issueUrl;
+      if (!subject) throw new Error("Oggetto della segnalazione: campo obbligatorio");
+      if (!description) throw new Error("Descrizione della segnalazione: campo obbligatorio");
+      document.querySelector("#feedbackForm").reset();
+      status.textContent = "Grazie per il feedback!";
+      status.hidden = false;
     } catch (error) {
       showCalculationError(error.message);
     }
@@ -891,7 +849,7 @@
       }
     });
 
-    document.querySelector("#feedbackForm").addEventListener("submit", openFeedbackIssue);
+    document.querySelector("#feedbackForm").addEventListener("submit", submitFeedback);
     document.querySelector("#resetButton").addEventListener("click", resetUI);
     document.querySelector("#copySummary").addEventListener("click", async () => {
       if (!global.lastCalculationResult) return;

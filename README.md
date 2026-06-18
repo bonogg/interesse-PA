@@ -17,7 +17,7 @@ Il tool non usa backend, database, form submission, API esterne, analytics, trac
 
 Tutti i calcoli avvengono nel browser dell'utente. I file `rates.js` e `app.js` sono caricati localmente come asset statici.
 
-Il box "Suggerisci una correzione" non salva dati nel sito: prepara una GitHub Issue pubblica con i campi compilati dall'utente e le label `feedback` e `needs-triage`.
+Il box "Suggerisci una correzione" non apre pagine esterne e non salva dati nel sito: mostra solo una conferma locale dopo la compilazione.
 
 ## Uso
 
